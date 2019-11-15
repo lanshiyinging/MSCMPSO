@@ -35,10 +35,10 @@ double Rosenbrock(vector<double> x){
 
 double Griewank(vector<double> x){
     double y = 0;
-    double y1 = 0, y2 = 0;
+    double y1 = 0, y2 = 1;
     for(int d = 0; d < dim; ++ d){
         y1 += x[d]*x[d];
-        y2 *= cos(x[d]/sqrt(d));
+        y2 *= cos(x[d]/sqrt(d+1));
     }
     y = y1/4000 - y2 + 1;
     return y;

@@ -8,16 +8,17 @@
 
 #include <vector>
 #include <random>
+#include <fstream>
 using namespace std;
 
 class Macmpso {
 public:
-    const int times = 10;
+    const int times = 50;
     const int generation = 6000;
     const int size = 20;    //种群规模
     const int dim = 30;     //维度
-    const double c1 = 1.4;
-    const double c2 = 1.4;
+    const double c1 = 1.2;
+    const double c2 = 1.2;
     const int K1 = 5;
     const int K2 = 10;
     const int M = 5;
@@ -28,27 +29,25 @@ public:
     vector<vector<double>> v;
     vector<vector<double>> pbest;
     vector<double> pgbest;
-    vector<double> fit;
+    //vector<double> fit;
     vector<int> G;
     vector<double> T;
     vector<double> sigma;
     double (*f)(vector<double>);
     double width;
-    double wmax = 0.95;
+    double wmax = 0.8;
     double wmin = 0.4;
-    double bestFit;
     double Vmax;
 
     Macmpso(double w, double (*fc)(vector<double>));
     void init();
-    void updatePbest();
-    void updatePgbest();
     void updateV(double w);
     void escape();
-    void updatePos();
     void updataSigma();
-    void solution();
+    void updateGT();
+    void solution(string filename);
     vector<double> addToX(vector<double> x1, double value, int d);
+    void printBestPosition();
 
 
 };

@@ -16,7 +16,6 @@ void Macmpso::init() {
     v.clear();
     pbest.clear();
     pgbest.clear();
-    fit.clear();
     G.clear();
     T.clear();
     sigma.clear();
@@ -32,7 +31,6 @@ void Macmpso::init() {
             tempv.push_back(u2(e));
         }
         tmpFit = f(tempx);
-        fit.push_back(tmpFit);
         if(tmpFit < minFit){
             minFit = tmpFit;
             pgbest.assign(tempx.begin(), tempx.end());
@@ -43,27 +41,10 @@ void Macmpso::init() {
         T.push_back(0.5);
     }
     pbest.assign(x.begin(), x.end());
-    bestFit = f(pgbest);
     for(int m = 0; m < M; ++ m){
         sigma.push_back(width*2);
     }
 }
-
-void Macmpso::updatePbest() {
-    for(int i = 0; i < size; ++ i){
-        if(fit[i] < f(pbest[i]))
-            pbest[i].assign(x[i].begin(), x[i].end());
-    }
-}
-
-void Macmpso::updatePgbest() {
-    for(int i = 0; i < size; ++ i){
-        if(f(pbest[i]) < f(pgbest))
-            pgbest.assign(pbest[i].begin(), pbest[i].end());
-    }
-    bestFit = f(pgbest);
-}
-
 
 void Macmpso::updateV(double w) {
     uniform_real_distribution<double> u(0, 1);
@@ -79,10 +60,10 @@ void Macmpso::updateV(double w) {
 void Macmpso::escape() {
     normal_distribution<double> u;
     uniform_real_distribution<double> u2(0, 1);
-    for(int d = 0; d < dim; ++ d){
-        for(int i = 0; i < size; ++ i){
+    for(int i = 0; i < size; ++ i){
+        for(int d = 0; d < dim; ++ d){
             //double r = u(e);
-            if(v[i][d] < T[d]){
+            if(fabs(v[i][d]) < T[d]){
                 double minf = MAX_DOUBLE;
                 double randSigma = 0;
                 for(int j = 0; j < M; ++ j){
@@ -101,28 +82,22 @@ void Macmpso::escape() {
                     v[i][d] = r2*Vmax;
                 G[d] += 1;
             }
-        }
-        if(G[d] > K1){
-            G[d] = 0;
-            T[d] /= K2;
-
-        }
-    }
-}
-
-void Macmpso::updatePos() {
-    for(int i = 0; i < size; ++ i){
-        for(int d = 0; d < dim; ++ d){
             x[i][d] += v[i][d];
+            if(f(x[i]) < f(pbest[i]))
+                pbest[i].assign(x[i].begin(), x[i].end());
+            if(f(pbest[i]) < f(pgbest))
+                pgbest.assign(pbest[i].begin(), pbest[i].end());
         }
-        fit[i] = f(x[i]);
     }
 }
 
 void Macmpso::updataSigma() {
     int pNum = size / M;
     vector<double> fits;
-    fits.assign(fit.begin(), fit.end());
+    for(int i = 0; i < size; ++ i){
+        fits.push_back(f(x[i]));
+    }
+    //calFitness(fits);
     sort(fits.begin(), fits.end());
     vector<double> fitX;
     double fitXsum = 0;
@@ -141,38 +116,59 @@ void Macmpso::updataSigma() {
         if(fitsum < fitXmin)
             fitXmin = fitsum;
     }
-    double range = fitXmax - fitXmin;
+    double range = fitXmax - fitXmin + pow(10, -10);
     for(int m = 0; m < M; ++ m){
         sigma[m] *= exp((M*fitX[m]-fitXsum)/range);
         while(sigma[m] > width/4)
-            sigma[m] = abs(width/4 - sigma[m]);
+            sigma[m] -= width/4;
     }
 }
 
 
-void Macmpso::solution() {
+void Macmpso::updateGT(){
+    for(int d = 0; d < dim; ++ d){
+        if(G[d] > K1){
+            G[d] = 0;
+            T[d] = T[d]/K2;
+        }
+    }
+}
+
+void Macmpso::solution(string filename) {
+    ofstream out;
+    out.open(filename, ios::out);
+    vector<double> eval;
     for(int i = 0; i < times; ++ i){
         init();
         double w;
         for(int j = 0; j < generation; ++ j){
-            updatePbest();
-            updatePgbest();
             w = wmax-(wmax-wmin)*j/6000;
             updateV(w);
             escape();
-            updatePos();
             updataSigma();
-            printf("iterator %d\tbest fitness: %lf\n", j, bestFit);
-            //cout << "iterator " << j << "\tbest fitness: " << bestFit << endl;
-            if(bestFit == 0){
-                cout << "finished" << endl;
-                break;
-            }
+            updateGT();
+            if(i == 0)
+                out << i << " " << log(f(pgbest)) << endl;
         }
-        cout << "train " << i << "\tresult: " << bestFit << endl;
-
+        eval.push_back(f(pgbest));
+        cout << scientific << "train " << i << "\t best fitness: " << f(pgbest) << "\tbest position: ";
+        printBestPosition();
     }
-
+    out.close();
+    out.open("eval.txt", ios::app);
+    double min = MAX_DOUBLE, max = -1, mean = 0, sd = 0;
+    for(int t = 0; t < times; ++ t){
+        mean += eval[t];
+        if(eval[t] > max)
+            max = eval[t];
+        if(eval[t] < min)
+            min = eval[t];
+    }
+    mean /= times;
+    for(int t = 0; t < times; ++ t){
+        sd += (eval[t]-mean)*(eval[t]-mean);
+    }
+    out << scientific << min << "\t" << max << "\t" << mean << "\t" << sd << endl;
 }
 
 vector<double> Macmpso::addToX(vector<double> x1, double value, int d){
@@ -180,6 +176,14 @@ vector<double> Macmpso::addToX(vector<double> x1, double value, int d){
     x2.assign(x1.begin(), x1.end());
     x2[d] += value;
     return x2;
+}
+
+void Macmpso::printBestPosition() {
+    cout << "(";
+    for(int d = 0; d < dim; ++ d){
+        cout << scientific << pgbest[d] << " ";
+    }
+    cout << ")" << endl;
 }
 
 
