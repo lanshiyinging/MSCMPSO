@@ -17,7 +17,7 @@ double Quadric(vector<double> x){
     double y = 0;
     for(int i = 0; i < dim; ++ i){
         double tmp = 0;
-        for(int j = 0; j < i; ++ j){
+        for(int j = 0; j < i+1; ++ j){
             tmp += x[j];
         }
         y += tmp*tmp;
@@ -55,7 +55,7 @@ double Rastrigin(vector<double> x){
 double SchafferF7(vector<double> x){
     double y = 0;
     for(int d = 0; d < dim-1; ++ d){
-        y += pow((x[d]*x[d]+x[d+1]*x[d+1]), 0.25)*(sin(50*pow((x[d]*x[d] + x[d+1]*x[d+1]), 0.1))+1.0);
+        y += pow((x[d]*x[d]+x[d+1]*x[d+1]), 0.25)*(sin(50*pow((x[d]*x[d] + x[d+1]*x[d+1]), 0.1))+1);
     }
     return y;
 }

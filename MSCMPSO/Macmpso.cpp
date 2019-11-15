@@ -49,17 +49,17 @@ void Macmpso::init() {
     }
 }
 
-void Macmpso::updataPbest() {
+void Macmpso::updatePbest() {
     for(int i = 0; i < size; ++ i){
         if(fit[i] < f(pbest[i]))
             pbest[i].assign(x[i].begin(), x[i].end());
     }
 }
 
-void Macmpso::updataPgbest() {
+void Macmpso::updatePgbest() {
     for(int i = 0; i < size; ++ i){
-        if(fit[i] < f(pgbest))
-            pgbest.assign(x[i].begin(), x[i].end());
+        if(f(pbest[i]) < f(pgbest))
+            pgbest.assign(pbest[i].begin(), pbest[i].end());
     }
     bestFit = f(pgbest);
 }
@@ -68,9 +68,9 @@ void Macmpso::updataPgbest() {
 void Macmpso::updateV(double w) {
     uniform_real_distribution<double> u(0, 1);
     for(int i = 0; i < size; ++ i){
-        double r1 = u(e);
-        double r2 = u(e);
         for(int d = 0; d < dim; ++ d){
+            double r1 = u(e);
+            double r2 = u(e);
             v[i][d] = w*v[i][d] + c1*r1*(pbest[i][d]-x[i][d]) + c2*r2*(pgbest[i]-x[i][d]);
         }
     }
@@ -84,11 +84,10 @@ void Macmpso::escape() {
             //double r = u(e);
             if(v[i][d] < T[d]){
                 double minf = MAX_DOUBLE;
-                double randSigma;
+                double randSigma = 0;
                 for(int j = 0; j < M; ++ j){
                     double r = u(e);
-                    double tmpf;
-                    tmpf = f(addToX(x[i], r*sigma[j], d));
+                    double tmpf = f(addToX(x[i], r*sigma[j], d));
                     if(tmpf < minf){
                         minf = tmpf;
                         randSigma = r*sigma[j];
@@ -131,7 +130,7 @@ void Macmpso::updataSigma() {
     double fitXmin = MAX_DOUBLE;
     for(int m = 0; m < M; ++ m){
         double fitsum = 0;
-        for(int i = m; i < m+pNum; ++ i){
+        for(int i = m*pNum; i < (m+1)*pNum; ++ i){
             fitsum += fits[i];
         }
         fitsum /= pNum;
@@ -154,15 +153,17 @@ void Macmpso::updataSigma() {
 void Macmpso::solution() {
     for(int i = 0; i < times; ++ i){
         init();
+        double w;
         for(int j = 0; j < generation; ++ j){
-            w = 0.95-(0.55/6000)*j;
-            updataPbest();
-            updataPgbest();
+            updatePbest();
+            updatePgbest();
+            w = wmax-(wmax-wmin)*j/6000;
             updateV(w);
             escape();
             updatePos();
             updataSigma();
-            cout << "iterator " << j << "\tbest fitness: " << bestFit << endl;
+            printf("iterator %d\tbest fitness: %lf\n", j, bestFit);
+            //cout << "iterator " << j << "\tbest fitness: " << bestFit << endl;
             if(bestFit == 0){
                 cout << "finished" << endl;
                 break;

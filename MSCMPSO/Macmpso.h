@@ -34,14 +34,15 @@ public:
     vector<double> sigma;
     double (*f)(vector<double>);
     double width;
-    double w = 0.95;
+    double wmax = 0.95;
+    double wmin = 0.4;
     double bestFit;
     double Vmax;
 
     Macmpso(double w, double (*fc)(vector<double>));
     void init();
-    void updataPbest();
-    void updataPgbest();
+    void updatePbest();
+    void updatePgbest();
     void updateV(double w);
     void escape();
     void updatePos();
