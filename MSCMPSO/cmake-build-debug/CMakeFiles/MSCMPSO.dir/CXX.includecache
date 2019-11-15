@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/lansy/Desktop/计算智能/作业/作业四/MSCMPSO/MSCMPSO/Macmpso.cpp
+iostream
+-
+Macmpso.h
+/Users/lansy/Desktop/计算智能/作业/作业四/MSCMPSO/MSCMPSO/Macmpso.h
+
+/Users/lansy/Desktop/计算智能/作业/作业四/MSCMPSO/MSCMPSO/Macmpso.h
+vector
+-
+random
+-
+
+/Users/lansy/Desktop/计算智能/作业/作业四/MSCMPSO/MSCMPSO/function.cpp
+function.h
+/Users/lansy/Desktop/计算智能/作业/作业四/MSCMPSO/MSCMPSO/function.h
+
+/Users/lansy/Desktop/计算智能/作业/作业四/MSCMPSO/MSCMPSO/function.h
+cmath
+-
+vector
+-
+
+/Users/lansy/Desktop/计算智能/作业/作业四/MSCMPSO/MSCMPSO/main.cpp
+iostream
+-
+cmath
+-
+function.h
+/Users/lansy/Desktop/计算智能/作业/作业四/MSCMPSO/MSCMPSO/function.h
+Macmpso.h
+/Users/lansy/Desktop/计算智能/作业/作业四/MSCMPSO/MSCMPSO/Macmpso.h
+
